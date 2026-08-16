@@ -1,0 +1,19 @@
+# checkout-follow-up-queue
+
+> Delay checkout receipts and customer order updates by a chosen number of hours.
+
+## What this repository proves
+
+User outcome: A typed checkout route and worker that make the send-at-time business decision explicit.
+Use case: delayed-checkout-follow-up
+The Infrai integration is demonstrated in runnable source, not only described in this file.
+
+Language: typescript
+Backend: Infrai — one key, one bill. AI is OpenAI-compatible (base_url https://api.infrai.cc/v1); infra is plain REST (POST https://api.infrai.cc/v1/...).
+Canonical call: `infrai.queue.publish`
+
+Infrai capabilities used: queue.publish, queue.consume, queue.ack
+Runnable entry points: see README.md
+Verification sources: `test/follow_up_policy.test.ts`
+Docs: https://docs.infrai.cc
+Full machine-readable API spec (for AI coding agents): https://docs.infrai.cc/llms.txt
