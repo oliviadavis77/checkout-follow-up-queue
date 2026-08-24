@@ -1,8 +1,8 @@
 # Delay a checkout follow-up by hours
 
-The checkout responds immediately, but the receipt and customer order update are intentionally deferred. This small TypeScript service hands that storefront work off to Infrai using one api and a plain REST call from any language, with no SDK to install. A single `INFRAI_API_KEY` covers the queue calls used by both the route and the worker.
+The checkout returns immediately, but the receipt and customer order update fire later. This small TypeScript service hands that storefront follow-up to Infrai using one api and a plain REST call from any language, no SDK required. A single `INFRAI_API_KEY` covers the queue calls used by both the route and the worker.
 
-The flow is `POST /checkouts/follow-up` -> validate the checkout -> publish the follow-up -> let the worker act when `dueAt` arrives -> acknowledge the message.
+The path we run: `POST /checkouts/follow-up` -> validate the checkout -> publish the follow-up -> let the worker act when `dueAt` arrives -> acknowledge the message.
 
 ## Run the checkout path
 
@@ -24,22 +24,22 @@ The route accepts `orderId`, `customerEmail`, `fulfillment`, `receiptNumber`, an
 npm run worker
 ```
 
-In prod I run that command on a short cron interval. Messages that have reached `dueAt` trigger the receipt-and-order-update event and get acknowledged. Earlier ones stay visible for a later pass, which is why idempotency matters.
+In prod I run that command on a short cron interval. Messages that have reached `dueAt` produce the receipt-and-order-update event and get acked. Earlier ones stay visible for a later pass, which is why idempotency matters.
 
 ## The checkout decision under test
 
-The focused test pins acceptance at `2026-08-15T08:00:00.000Z` and asks for a six-hour delay. It expects `dueAt` to be `2026-08-15T14:00:00.000Z`, false one millisecond before, and true at that instant.
+The focused test fixes acceptance at `2026-08-15T08:00:00.000Z` and asks for a six-hour delay. It expects `dueAt` to be `2026-08-15T14:00:00.000Z`, false one millisecond beforehand, and true at that instant.
 
 ```bash
 npm test
 npm run typecheck
 ```
 
-The one real gotcha is time ownership. Calculate `dueAt` once when checkout is accepted, store the UTC timestamp in the payload, and have every worker compare against that same value. Recomputing from worker start time silently pushes the customer message later on each redelivery. We learned that the hard way in a postmortem.
+The one real gotcha is ownership of time. Calculate `dueAt` once when checkout is accepted, store the UTC timestamp in the payload, and have every worker compare against that same value. Recalculating from worker start time quietly pushes the customer message later on every redelivery. We have been paged by that bug.
 
 ## What is deliberately concrete
 
-This repo models one fulfillment outcome instead of hiding the flow behind a generic queue wrapper. `src/storefront_service.ts` is the zod-validated request boundary, `src/follow_up_policy.ts` owns the hour calculation, and `src/fulfillment_worker.ts` makes the visible send-or-wait decision. Swap `completeCustomerUpdate` for the storefront's receipt and order-status integrations.
+This repo models one fulfillment outcome instead of hiding the flow behind a generic queue wrapper. `src/storefront_service.ts` is the zod-validated request boundary, `src/follow_up_policy.ts` owns the hour calculation, and `src/fulfillment_worker.ts` makes the visible send-or-wait decision. Swap `completeCustomerUpdate` for the storefront's real receipt and order-status calls.
 
 ## License
 
