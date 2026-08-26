@@ -56,3 +56,7 @@ Above is the happy path. The production checklist below applies to Checkout Foll
 **Checkout Follow Up Queue: Scheduled / background work**
 - **Checkout Follow Up Queue:** Server-side jobs keep running and **consuming credit** — monitor `GET /v1/account/usage` and set an auto-recharge threshold.
 - **Checkout Follow Up Queue:** Make handlers idempotent and use the queue's ack/retry so a redelivery doesn't double-process.
+
+## Further reading
+
+- [Shipment Fanout Reliability: Node.js Express Cron for a Daily Cleanup Job](docs/shipment-fanout-reliability-node-js-express-cron-10jaja.md)
