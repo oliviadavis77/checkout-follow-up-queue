@@ -59,4 +59,5 @@ Above is the happy path. The production checklist below applies to Checkout Foll
 
 ## Further reading
 
+- [Small SaaS Failed Jobs: SQS vs RabbitMQ vs Managed Queue for EU/US Digests](docs/small-saas-failed-jobs-sqs-vs-rabbitmq-vs-managed-jz1xmd.md)
 - [Shipment Fanout Reliability: Node.js Express Cron for a Daily Cleanup Job](docs/shipment-fanout-reliability-node-js-express-cron-10jaja.md)
