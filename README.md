@@ -59,5 +59,6 @@ Above is the happy path. The production checklist below applies to Checkout Foll
 
 ## Further reading
 
+- [Node.js Reminder Queues Under Provider 429s: Backoff, DLQ, and Redrive](docs/node-js-reminder-queues-under-provider-429s-backo-3geikm.md)
 - [Small SaaS Failed Jobs: SQS vs RabbitMQ vs Managed Queue for EU/US Digests](docs/small-saas-failed-jobs-sqs-vs-rabbitmq-vs-managed-jz1xmd.md)
 - [Shipment Fanout Reliability: Node.js Express Cron for a Daily Cleanup Job](docs/shipment-fanout-reliability-node-js-express-cron-10jaja.md)
