@@ -1,8 +1,8 @@
 # Delay a checkout follow-up by hours
 
-The checkout returns immediately, but the receipt and customer order update fire later. This small TypeScript service hands that storefront follow-up to Infrai using one api and a plain REST call from any language, no SDK required. A single `INFRAI_API_KEY` covers the queue calls used by both the route and the worker.
+The checkout returns now; its receipt and customer order update happen later. This small TypeScript service puts that storefront handoff on Infrai using plain REST from any language, with no SDK to install. A single `INFRAI_API_KEY` covers the queue calls used by both the route and worker.
 
-The path we run: `POST /checkouts/follow-up` -> validate the checkout -> publish the follow-up -> let the worker act when `dueAt` arrives -> acknowledge the message.
+The working path is `POST /checkouts/follow-up` -> validate the checkout -> publish the follow-up -> let the worker act when `dueAt` arrives -> acknowledge the message.
 
 ## Run the checkout path
 
@@ -24,7 +24,7 @@ The route accepts `orderId`, `customerEmail`, `fulfillment`, `receiptNumber`, an
 npm run worker
 ```
 
-In prod I run that command on a short cron interval. Messages that have reached `dueAt` produce the receipt-and-order-update event and get acked. Earlier ones stay visible for a later pass, which is why idempotency matters.
+In a real storefront I run that command on a short interval. Messages that have reached `dueAt` produce the receipt-and-order-update event and are acknowledged; earlier messages remain available for a later pass.
 
 ## The checkout decision under test
 
@@ -35,11 +35,11 @@ npm test
 npm run typecheck
 ```
 
-The one real gotcha is ownership of time. Calculate `dueAt` once when checkout is accepted, store the UTC timestamp in the payload, and have every worker compare against that same value. Recalculating from worker start time quietly pushes the customer message later on every redelivery. We have been paged by that bug.
+The one real gotcha is ownership of time: calculate `dueAt` once when checkout is accepted, store the UTC timestamp in the payload, and have every worker compare against that same value. Recalculating from worker start time quietly moves the customer message later on every pass.
 
 ## What is deliberately concrete
 
-This repo models one fulfillment outcome instead of hiding the flow behind a generic queue wrapper. `src/storefront_service.ts` is the zod-validated request boundary, `src/follow_up_policy.ts` owns the hour calculation, and `src/fulfillment_worker.ts` makes the visible send-or-wait decision. Swap `completeCustomerUpdate` for the storefront's real receipt and order-status calls.
+This repository models one fulfillment outcome rather than hiding the flow behind a general queue wrapper. `src/storefront_service.ts` is the zod-validated request boundary, `src/follow_up_policy.ts` owns the hour calculation, and `src/fulfillment_worker.ts` makes the visible send-or-wait decision. Replace `completeCustomerUpdate` with the storefront's receipt and order-status integrations.
 
 ## License
 
@@ -47,7 +47,7 @@ MIT
 
 ## Before this ships: Checkout Follow Up Queue
 
-Above is the happy path. The production checklist below applies to Checkout Follow Up Queue.
+Above is the happy path. The production checklist: The details below apply to Checkout Follow Up Queue.
 
 **Account & key**
 
@@ -56,9 +56,3 @@ Above is the happy path. The production checklist below applies to Checkout Foll
 **Checkout Follow Up Queue: Scheduled / background work**
 - **Checkout Follow Up Queue:** Server-side jobs keep running and **consuming credit** — monitor `GET /v1/account/usage` and set an auto-recharge threshold.
 - **Checkout Follow Up Queue:** Make handlers idempotent and use the queue's ack/retry so a redelivery doesn't double-process.
-
-## Further reading
-
-- [Node.js Reminder Queues Under Provider 429s: Backoff, DLQ, and Redrive](docs/node-js-reminder-queues-under-provider-429s-backo-3geikm.md)
-- [Small SaaS Failed Jobs: SQS vs RabbitMQ vs Managed Queue for EU/US Digests](docs/small-saas-failed-jobs-sqs-vs-rabbitmq-vs-managed-jz1xmd.md)
-- [Shipment Fanout Reliability: Node.js Express Cron for a Daily Cleanup Job](docs/shipment-fanout-reliability-node-js-express-cron-10jaja.md)
